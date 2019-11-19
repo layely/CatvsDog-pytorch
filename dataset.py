@@ -1,16 +1,35 @@
+import torch
 from torch.utils import data
+import numpy as np
 import glob
 import cv2
 from tqdm import tqdm
 
 class Data(data.Dataset):
-    def __init__(self, cat_images, dog_images):
+    def __init__(self, cat_images, dog_images, device=None):
         self.images = cat_images + dog_images
         self.labels = [0.] * len(cat_images) + [1.0] * len(dog_images)
-        print("Number of images loaded: ", len(self.labels))
+        self.len = len(self.labels)
+
+        # convert to numpy arrays
+        self.images = np.asarray(self.images)
+        self.labels = np.asarray(self.labels)
+
+        # convert to tensors
+        self.images = torch.from_numpy(self.images).float()
+        self.labels = torch.from_numpy(self.labels).float()
+
+        # In pytorch, conv2D expect input shape to be in this
+        # form: (batch_size, channels, height, weight).
+        self.images = self.images.permute(0, 3, 1, 2)
+
+        # Move to specified device if applicable.
+        if device:
+            self.images = self.images.to(device)
+            self.labels = self.labels.to(device)
 
     def __len__(self):
-        return len(self.labels)
+        return self.len
 
     def __getitem__(self, index):
         X = self.images[index]
@@ -20,8 +39,8 @@ class Data(data.Dataset):
 class DataSplit():
     def __init__(self, dirpath, train, val, test):
         print("Preparing data...")
-        cat_images = glob.glob(dirpath + "/Cat/*.jpg")[:1000]
-        dog_images = glob.glob(dirpath + "/Dog/*.jpg")[:1000]
+        cat_images = glob.glob(dirpath + "/Cat/*.jpg")[:]
+        dog_images = glob.glob(dirpath + "/Dog/*.jpg")[:]
 
         # Filter out bad images
         print("\tFiltering corrupt images... ")
@@ -47,23 +66,23 @@ class DataSplit():
         self.test_cats = cat_images[train_size + val_size:]
         self.test_dogs = dog_images[train_size + val_size:]
 
-    def get_datasets(self):
-        train_dataset = Data(self.train_cats, self.train_dogs)
-        val_dataset = Data(self.val_cats, self.val_dogs)
-        test_dataset = Data(self.test_cats, self.test_dogs)
+    def get_datasets(self, device=None):
+        train_dataset = Data(self.train_cats, self.train_dogs, device)
+        val_dataset = Data(self.val_cats, self.val_dogs, device)
+        test_dataset = Data(self.test_cats, self.test_dogs, device)
         return train_dataset, val_dataset, test_dataset
 
     def filter_corrupt_images(self, paths):
         good_imgpaths = []
         for path in tqdm(paths):
             try:
-                img = read_image(path)
+                img = self.read_image(path)
                 good_imgpaths.append(img)
             except:
                 pass
         return good_imgpaths
 
-def read_image(filepath):
-    img = cv2.imread(filepath)
-    img = cv2.resize(img, (80, 80))
-    return img
+    def read_image(self, filepath):
+        img = cv2.imread(filepath)
+        img = cv2.resize(img, (80, 80))
+        return img

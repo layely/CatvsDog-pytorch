@@ -10,15 +10,11 @@ from dataset import DataSplit
 def preprocess_batch(batch_x, batch_y):
     # In pytorch, conv expect input shape to be in this
     # form: (batch_size, channels, height, weight).
-    batch_x = batch_x.permute(0, 3, 1, 2)
+    # batch_x = batch_x.permute(0, 3, 1, 2)
 
     # move batches to correct device
-    batch_x = batch_x.to(device)
-    batch_y = batch_y.to(device)
-
-    # convert tensors type to float
-    batch_x = batch_x.type(torch.cuda.FloatTensor)
-    batch_y = batch_y.type(torch.cuda.FloatTensor)
+    # batch_x = batch_x.to(device)
+    # batch_y = batch_y.to(device)
 
     return batch_x, batch_y
 
@@ -39,7 +35,7 @@ if GPU and torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 
-train_dataset, val_dataset, test_dataset = DataSplit(DATASET_DIR, train, val, test).get_datasets()
+train_dataset, val_dataset, test_dataset = DataSplit(DATASET_DIR, train, val, test).get_datasets(device)
 train_generator = data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_generator = data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
