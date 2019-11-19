@@ -6,17 +6,7 @@ import os
 
 from models import AlexNet
 from dataset import DataSplit
-
-def preprocess_batch(batch_x, batch_y):
-    # In pytorch, conv expect input shape to be in this
-    # form: (batch_size, channels, height, weight).
-    # batch_x = batch_x.permute(0, 3, 1, 2)
-
-    # move batches to correct device
-    # batch_x = batch_x.to(device)
-    # batch_y = batch_y.to(device)
-
-    return batch_x, batch_y
+from utils import accuracy
 
 GPU = True
 DATASET_DIR = os.environ["HOME"] + "/Myprojects/datasets/cat_vs_dog"
@@ -39,7 +29,6 @@ train_dataset, val_dataset, test_dataset = DataSplit(DATASET_DIR, train, val, te
 train_generator = data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_generator = data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-
 model = AlexNet(input_size, output_size)
 print(model)
 
@@ -53,8 +42,6 @@ for epoch in range(epochs):
     # Train
     accumulated_train_loss = 0
     for batch_x, batch_y in train_generator:
-        batch_x, batch_y = preprocess_batch(batch_x, batch_y)
-
         # Forward
         preds = model(batch_x)
 
@@ -74,8 +61,6 @@ for epoch in range(epochs):
     # Validation
     accumulated_val_loss = 0
     for batch_x, batch_y in val_generator:
-        batch_x, batch_y = preprocess_batch(batch_x, batch_y)
-
         # Forward
         preds = model(batch_x)
 
@@ -83,5 +68,19 @@ for epoch in range(epochs):
         loss = loss_func(preds, batch_y)
         accumulated_val_loss += loss.item()
 
-
     print("Epoch: {} -- -- train loss: {}, val loss: {}".format(epoch, accumulated_train_loss, accumulated_val_loss))
+
+# Evaluate model
+test_generator = data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+accumulated_test_loss = 0
+metrics = []
+for batch_x, batch_y in test_generator:
+    # Forward
+    preds = model(batch_x)
+    metrics.append(accuracy(preds, batch_y))
+
+    # compute loss
+    loss = loss_func(preds, batch_y)
+    accumulated_test_loss += loss.item()
+
+print("Accuracy on test data: ", sum(metrics) / len(metrics))
