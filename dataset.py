@@ -20,8 +20,8 @@ class Data(data.Dataset):
 class DataSplit():
     def __init__(self, dirpath, train, val, test):
         print("Preparing data...")
-        cat_images = glob.glob(dirpath + "/Cat/*.jpg")
-        dog_images = glob.glob(dirpath + "/Dog/*.jpg")
+        cat_images = glob.glob(dirpath + "/Cat/*.jpg")[:1000]
+        dog_images = glob.glob(dirpath + "/Dog/*.jpg")[:1000]
 
         # Filter out bad images
         print("\tFiltering corrupt images... ")
@@ -42,10 +42,10 @@ class DataSplit():
         print("\tSpliting dataset...")
         self.train_cats = cat_images[:train_size]
         self.train_dogs = dog_images[:train_size]
-        self.val_cats = cat_images[train_size:val_size]
-        self.val_dogs = dog_images[train_size:val_size]
-        self.test_cats = cat_images[val_size:]
-        self.test_dogs = dog_images[val_size:]
+        self.val_cats = cat_images[train_size:train_size + val_size]
+        self.val_dogs = dog_images[train_size:train_size + val_size]
+        self.test_cats = cat_images[train_size + val_size:]
+        self.test_dogs = dog_images[train_size + val_size:]
 
     def get_datasets(self):
         train_dataset = Data(self.train_cats, self.train_dogs)
