@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 class Data(data.Dataset):
     def __init__(self, cat_images, dog_images):
-        self.img_paths = cat_images + dog_images
+        self.images = cat_images + dog_images
         self.labels = [0.] * len(cat_images) + [1.0] * len(dog_images)
         print("Number of images loaded: ", len(self.labels))
 
@@ -13,8 +13,7 @@ class Data(data.Dataset):
         return len(self.labels)
 
     def __getitem__(self, index):
-        path = self.img_paths[index]
-        X = read_image(path)
+        X = self.images[index]
         y = self.labels[index]
         return X, y
 
@@ -58,8 +57,8 @@ class DataSplit():
         good_imgpaths = []
         for path in tqdm(paths):
             try:
-                read_image(path)
-                good_imgpaths.append(path)
+                img = read_image(path)
+                good_imgpaths.append(img)
             except:
                 pass
         return good_imgpaths
