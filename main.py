@@ -6,7 +6,7 @@ import os
 
 from models import AlexNet
 from dataset import DataSplit
-from utils import accuracy, save_checkpoint, load_checkpoint
+from utils import accuracy, save_checkpoint, load_checkpoint, TBManager
 
 # Set miscellaneous parameters
 GPU = True
@@ -38,6 +38,16 @@ train_generator = data.DataLoader(
 val_generator = data.DataLoader(
     val_dataset, batch_size=batch_size, shuffle=False)
 
+# Initialize tensorboard
+tensorboard = TBManager()
+
+# Visulaize some images of the training set
+cat_samples = train_dataset.images[:10] # The first images on the list are cats
+dog_samples = train_dataset.images[-10:] # The last images on the list are dogs
+for i in range(cat_samples.shape[0]):
+    tensorboard.add_images("Cat/{}".format(i), None, cat_samples[i:i+1])
+    tensorboard.add_images("Dog/{}".format(i), None, dog_samples[i:i+1])
+
 model = AlexNet(input_size, output_size);
 cur_epoch = 0
 
@@ -47,7 +57,6 @@ if RESUME_TRAINING:
 
 model = model.to(device)
 print(model)
-
 
 loss_func = torch.nn.BCELoss(reduction="mean")
 optimizer = opt(model.parameters(), lr=lr, momentum=momentum)
@@ -60,6 +69,7 @@ for epoch in range(cur_epoch, epochs):
     accumulated_train_loss = []
     # Set model in trainng mode
     model.train()
+    iteration = 0
     for batch_x, batch_y in train_generator:
         # Forward
         preds = model(batch_x)
@@ -77,6 +87,8 @@ for epoch in range(cur_epoch, epochs):
         # Step to update optimizer params
         optimizer.step()
 
+        iteration += 1
+
     # Validation
     # Set mode in inference mode
     model.eval()
@@ -93,6 +105,8 @@ for epoch in range(cur_epoch, epochs):
     val_loss = sum(accumulated_val_loss) / len(accumulated_val_loss)
     print("Epoch: {} -- -- train loss: {}, val loss: {}".format(epoch,
                                                                 train_loss, val_loss))
+    tensorboard.add_scalar("Loss/Train", train_loss, epoch)
+    tensorboard.add_scalar("Loss/Validation", val_loss, epoch)
 
     # Save checkpoint, if applicable
     if CHECKPOINT_FREQUENCY > 0 and (epoch + 1) % CHECKPOINT_FREQUENCY == 0:
