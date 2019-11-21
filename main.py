@@ -3,6 +3,7 @@ import torch.nn as nn
 import numpy as np
 from torch.utils import data
 import os
+from tqdm import tqdm
 
 from models import AlexNet
 from dataset import DataSplit
@@ -15,7 +16,7 @@ CHECKPOINT_FREQUENCY = 100
 RESUME_TRAINING = False
 
 # Set hyperparameters
-epochs = 10
+epochs = 50
 batch_size = 32
 input_size = (3, 80, 80)
 output_size = 1
@@ -70,7 +71,7 @@ for epoch in range(cur_epoch, epochs):
     # Set model in trainng mode
     model.train()
     iteration = 0
-    for batch_x, batch_y in train_generator:
+    for batch_x, batch_y in tqdm(train_generator):
         # Forward
         preds = model(batch_x)
 
@@ -129,3 +130,6 @@ for batch_x, batch_y in test_generator:
     accumulated_test_loss.append(loss.item())
 
 print("Accuracy on test data: ", sum(metrics) / len(metrics))
+
+# Close writer properly
+tensorboard.close()

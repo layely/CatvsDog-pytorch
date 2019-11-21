@@ -39,8 +39,8 @@ class Data(data.Dataset):
 class DataSplit():
     def __init__(self, dirpath, train, val, test, input_shape):
         print("Preparing data...")
-        cat_images = glob.glob(dirpath + "/Cat/*.jpg")[:100]
-        dog_images = glob.glob(dirpath + "/Dog/*.jpg")[:100]
+        cat_images = glob.glob(dirpath + "/Cat/*.jpg")[:]
+        dog_images = glob.glob(dirpath + "/Dog/*.jpg")[:]
 
         # Filter out bad images
         print("\tFiltering corrupt images... ")
