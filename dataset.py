@@ -37,15 +37,15 @@ class Data(data.Dataset):
         return X, y
 
 class DataSplit():
-    def __init__(self, dirpath, train, val, test):
+    def __init__(self, dirpath, train, val, test, input_shape):
         print("Preparing data...")
-        cat_images = glob.glob(dirpath + "/Cat/*.jpg")[:]
-        dog_images = glob.glob(dirpath + "/Dog/*.jpg")[:]
+        cat_images = glob.glob(dirpath + "/Cat/*.jpg")[:100]
+        dog_images = glob.glob(dirpath + "/Dog/*.jpg")[:100]
 
         # Filter out bad images
         print("\tFiltering corrupt images... ")
-        cat_images = self.filter_corrupt_images(cat_images)
-        dog_images = self.filter_corrupt_images(dog_images)
+        cat_images = self.filter_corrupt_images(cat_images, input_shape)
+        dog_images = self.filter_corrupt_images(dog_images, input_shape)
 
         # Compute train, val and test portions
         total = train + val + test
@@ -72,17 +72,17 @@ class DataSplit():
         test_dataset = Data(self.test_cats, self.test_dogs, device)
         return train_dataset, val_dataset, test_dataset
 
-    def filter_corrupt_images(self, paths):
+    def filter_corrupt_images(self, paths, input_shape):
         good_imgpaths = []
         for path in tqdm(paths):
             try:
-                img = self.read_image(path)
+                img = self.read_image(path, input_shape)
                 good_imgpaths.append(img)
             except:
                 pass
         return good_imgpaths
 
-    def read_image(self, filepath):
+    def read_image(self, filepath, input_shape):
         img = cv2.imread(filepath)
-        img = cv2.resize(img, (80, 80))
+        img = cv2.resize(img, input_shape)
         return img
