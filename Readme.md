@@ -1,4 +1,4 @@
-# Cat vs Dog in Pytorch
+# Cats vs Dogs in Pytorch
 
 Getting my hand on pytorch
 
