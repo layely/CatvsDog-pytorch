@@ -1,6 +1,6 @@
 # Cats vs Dogs in Pytorch
 
-Getting my hand on pytorch
+Getting my hands on pytorch
 
 Note that the network implemented here is not exactly AlexNet.
 
